@@ -1,1 +1,1 @@
-# Neural Networks with Theano
+# Neural Networks implementation with Theano
