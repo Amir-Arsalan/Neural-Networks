@@ -3,71 +3,8 @@ Created on Dec 11, 2015
 
 @author: amirarsa
 '''
-# from theano import function, config, shared, sandbox
-# import theano.tensor as T
-# import numpy
-# import time
-# 
-# vlen = 10 * 30 * 768  # 10 x #cores x # threads per core
-# iters = 1000
-# 
-# rng = numpy.random.RandomState(22)
-# x = shared(numpy.asarray(rng.rand(vlen), config.floatX))
-# f = function([], T.exp(x))
-# print(f.maker.fgraph.toposort())
-# t0 = time.time()
-# for i in xrange(iters):
-#     r = f()
-# t1 = time.time()
-# print("Looping %d times took %f seconds" % (iters, t1 - t0))
-# print("Result is %s" % (r,))
-# if numpy.any([isinstance(x.op, T.Elemwise) for x in f.maker.fgraph.toposort()]):
-#     print('Used the cpu')
-# else:
-#     print('Used the gpu')
-
-# from __future__ import print_function
-# 
-# import numpy as np
-# import matplotlib.pyplot as plt
-# #import theano
-# # By convention, the tensor submodule is loaded as T
-# import theano.tensor as T
-# from theano import shared
-# import theano.sandbox.cuda.basic_ops as sb
-# from theano import function
-# from theano.printing import min_informative_str
-
-def data_loader():
-    return np.load('/home/amir/workspace/theanoL/src/mnist.pkl')
-
-
-# mnist = data_loader()
-# trainX, trainY = [mnist[0][0], mnist[0][1]]
-# validX, validY = [mnist[1][0], mnist[1][1]]
-# testX, testY = [mnist[2][0], mnist[2][1]]
-# 
-# num_input = trainX.shape[1]
-# num_h1 = 10
-# 
-# 
-# class logistic(object):
-#     def __init__(self):
-#         self.w = shared(np.zeros((num_input, num_h1), dtype=T.config.floatX), name = 'w', borrow=True)
-#         self.b = shared(np.zeros((10, 1), dtype=T.config.floatX), name = 'b', borrow = True, broadcastable=(False, True))
-#     
-#     def forward(self, x):
-#         return self.softmax(T.dot(x, self.w) + self.b)
-#     
-#     def softmax(self, a):
-#         return T.nnet.softmax(a)
-# 
-# logReg = logistic()
-# logReg.forward(trainX[0:100])
-
 
 import time
-import theano
 import theano.tensor as T
 import numpy as np
 from theano import shared, function, Out
