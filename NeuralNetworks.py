@@ -177,7 +177,7 @@ class layer(object):
         self.forwardProp = T.dot(self.x, self.w) + self.b
         if (self.lastLayer == False):
             if(self.activation == "relu"):
-                self.forwardProp = T.switch(self.forwardProp < 0, 0., self.forwardProp)
+                self.forwardProp = T.switch(self.forwardProp < 0, 0.01*self.forwardProp, self.forwardProp)
             elif(self.activation == 'sigmoid'):
                 self.forwardProp = T.nnet.sigmoid(self.forwardProp)
         else:
@@ -186,7 +186,7 @@ class layer(object):
 
 
 class MLP(object):
-    def __init__(self, inputs, nInput, nHidden, nOutput, activation='relu', weightInitMode = 'normal'):
+    def __init__(self, inputs, nInput, nHidden, nOutput, dropoutRates, activation='relu', weightInitMode = 'normal'):
         """
         nHidden could be a list containing the number of hidden units in each hidden layer.
         It could also be empty. If empty, Logistic Regression classifier will be implemented.
@@ -200,7 +200,7 @@ class MLP(object):
                     self.hLayers.append(layer(self.hLayers[i - 1].forwardProp, self.hLayers[i - 1].nOutput, nHidden[i], activation=activation, weightInitMode = weightInitMode))
             self.hLayers.append(layer(self.hLayers[len(self.hLayers) - 1].forwardProp, self.hLayers[len(self.hLayers) - 1].nOutput, nOutput, lastLayer = True, activation = activation)) #The output layer
         else:
-            self.hLayers.append(layer(self.x, nInput, nOutput, lastLayer = True)) #Logistic Regression      
+            self.hLayers.append(layer(self.x, nInput, nOutput, lastLayer = True))      
         
         self.params = []
         for hL in self.hLayers:
@@ -217,7 +217,8 @@ class MLP(object):
         return T.mean(T.neq(self.hLayers[len(self.hLayers) - 1].prediction, y))
         
 
-def compileModel(data, nInputs, nOutputs, hiddenLayersSize = [1200, 1200], activation = 'relu', weightInitMode = 'normal', regularizer = 0.0001):
+def compileModel(data, nInputs, nOutputs, hiddenLayersSize = [1200, 1200], dropoutRates = [0.2, 0.5, 0.5],
+                  activation = 'relu', weightInitMode = 'normal', regularizer = 0.0001):
     """
     Creates a symbolic model given the specified parameters using Theano
     
@@ -238,7 +239,8 @@ def compileModel(data, nInputs, nOutputs, hiddenLayersSize = [1200, 1200], activ
     valid_x, valid_y = data[1]
     test_x, test_y = data[2]
     
-    nnet = MLP(x, nInputs, hiddenLayersSize, nOutputs, activation = activation, weightInitMode = weightInitMode)
+    nnet = MLP(x, nInputs, hiddenLayersSize, nOutputs, dropoutRates = dropoutRates,
+                activation = activation, weightInitMode = weightInitMode)
     
     loss = nnet.loss(y, regularization)
     error = nnet.error(y)
@@ -257,7 +259,7 @@ def compileModel(data, nInputs, nOutputs, hiddenLayersSize = [1200, 1200], activ
     
     
 
-def mlp_sgd(Ns, modelFunctions, lr = 0.05, regularization = 0.0001, iters = 3000, batchSize = 128, randShuffle = True,
+def mlp_sgd(Ns, modelFunctions, lr = 0.01, regularization = 0.0001, iters = 3000, batchSize = 20, randShuffle = False,
             drop_out = [0.2, 0.05]):
     
     """
@@ -291,9 +293,9 @@ def mlp_sgd(Ns, modelFunctions, lr = 0.05, regularization = 0.0001, iters = 3000
 #         for j in range(len(trainIndices) - 1):
 #             tLoss.append(np.asarray(trainF(trainIndices[j], trainIndices[j + 1], lr, 0)))
         print "The loss is %f on iteration %d" % (np.mean([np.asarray(nll) for nll in tLoss]), i - 1)
-        lr = max(0.008, lr * 0.985)
+#         lr = max(0.008, lr * 0.985)
         #lr = learningRateUpdate(lr, mode='exponential')
-        print "Learning Rate has been Changed to %f" % lr
+#         print "Learning Rate has been Changed to %f" % lr
         if(i % 1 == 0):
             vLoss = []
             listOfBatchIndices = genPermutedBatchIndices(validIndices, batchSize, False)
@@ -377,9 +379,16 @@ def genPermutedBatchIndices(arr, batchSize, randShuffle = True):
 
 if __name__ == "__main__":
     
+    #Network parameters
+    hiddenLayersSize = [500]
+    dropoutRates = [0.2, 0.5, 0.5]
+    
+    #assert len(dropOutRates) - 1 == len(hiddenLayersSize)
+    
     data = loadMNIST()
     nInputs = np.asscalar(data[0][0].shape[1].eval())
     nOutputs = np.unique(data[0][1].eval()).shape[0]
     Ns = [data[0][0].shape[0].eval(), data[1][0].shape[0].eval(), data[2][0].shape[0].eval()]
-    modelFunctions = compileModel(data, nInputs, nOutputs, hiddenLayersSize = [1200, 1200], activation = 'relu', weightInitMode = 'normal')
+    modelFunctions = compileModel(data, nInputs, nOutputs, hiddenLayersSize = hiddenLayersSize, dropoutRates = dropoutRates,
+                                   activation = 'relu', weightInitMode = 'normal')
     mlp_sgd(Ns, modelFunctions)
