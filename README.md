@@ -1,3 +1,1 @@
-# NNs
-# Nueral Networks
-# Neural-Networks
+# Neural Networks with Theano
